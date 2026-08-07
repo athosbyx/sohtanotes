@@ -25,6 +25,13 @@
             font-size:18px;
             color:#555;
         }
+        img, p{
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .fade-out{
+            opacity: 0;
+            transform: translateY(10px);
+        }
         button{
             margin-top:25px;
             padding:10px 20px;
@@ -49,21 +56,31 @@
     <br>
     <button onclick="sortear()">aleatório</button>
 </div>
-
 <script>
     // Adiciona pares de imagem + frase aqui.
     // A imagem tem que estar no mesmo lugar do index.html, com o nome exato.
     const itens = [
-    { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio." },
-    { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão." },
-    { imagem: "Uh.jpeg", frase: "bem rebelde, não é?." },
-{ imagem: "gambling.gif", frase: "LET'S GO GAMBLING!" },
-];
+        { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio." },
+        { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão." },
+        { imagem: "Uh.jpeg", frase: "bem rebelde, não é?." },
+        { imagem: "gambling.gif", frase: "LET'S GO GAMBLING!" },
+    ];
 
     function sortear(){
-        const escolha = itens[Math.floor(Math.random() * itens.length)];
-        document.getElementById("foto").src = escolha.imagem;
-        document.getElementById("frase").textContent = '"' + escolha.frase + '"';
+        const foto = document.getElementById("foto");
+        const frase = document.getElementById("frase");
+
+        foto.classList.add("fade-out");
+        frase.classList.add("fade-out");
+
+        setTimeout(() => {
+            const escolha = itens[Math.floor(Math.random() * itens.length)];
+            foto.src = escolha.imagem;
+            frase.textContent = '"' + escolha.frase + '"';
+
+            foto.classList.remove("fade-out");
+            frase.classList.remove("fade-out");
+        }, 300);
     }
 </script>
 </body>
