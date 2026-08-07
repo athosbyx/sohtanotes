@@ -20,13 +20,16 @@
             width:500px;
             max-width:90vw;
         }
+        a.imagem-link img{
+            cursor: pointer;
+        }
         p{
             margin-top:20px;
             font-size:18px;
             color:#555;
         }
         img, p{
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;
         }
         .fade-out{
             opacity: 0;
@@ -77,45 +80,74 @@
 </head>
 <body>
 <div class="container">
-    <img id="foto" src="lain.jpeg">
+    <span id="foto-wrapper"><img id="foto" src="lain.jpeg"></span>
     <p id="frase">"A beleza também existe no silêncio."</p>
     <br>
     <button onclick="sortear()">aleatório</button>
 </div>
-
 <div class="rodape">
     <p>feito por sohta</p>
     <p id="atualizado"></p>
 </div>
-
 <a class="sugerir" href="https://forms.gle/NVmTD1NhMUaXYfaf7" target="_blank">sugerir</a>
-
 <script>
     // Adiciona pares de imagem + frase aqui.
     // A imagem tem que estar no mesmo lugar do index.html, com o nome exato.
+    //
+    // Propriedades opcionais:
+    //   cor  -> deixa a frase colorida (código hexadecimal, ex: "#e74c3c")
+    //   link -> deixa a imagem clicável, abrindo esse link numa aba nova
+    //   peso -> "quantos bilhetes" o item tem na rifa do sorteio (padrão é 1).
+    //           Aqui embaixo os itens normais usam peso 10, então pra tornar
+    //           algo RARO, dá um peso bem menor, tipo 1.
     const itens = [
-        { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio." },
-        { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão." },
-        { imagem: "Uh.jpeg", frase: "bem rebelde, não é?." },
-        { imagem: "gambling.gif", frase: "LET'S GO GAMBLING!" },
-{ imagem: "ouvino.jpeg", frase: "as vezes, fingir que não está ouvindo algo, pode te ajudar, tente." },
-{ imagem: "limbus-company-project-moon.gif", frase: "vroom vroom" },
-{ imagem: "tenor.gif", frase: "musgo" },
+        { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio.", peso: 10 },
+        { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão.", peso: 10 },
+        { imagem: "Uh.jpeg", frase: "bem rebelde, não é?.", peso: 10 },
+        { imagem: "gambling.gif", frase: "LET'S GO GAMBLING!", cor: "#d4a017", peso: 10 },
+        { imagem: "ouvino.jpeg", frase: "as vezes, fingir que não está ouvindo algo, pode te ajudar, tente.", peso: 10 },
+        { imagem: "limbus-company-project-moon.gif", frase: "vroom vroom", peso: 10 },
+        { imagem: "tenor.gif", frase: "musgo, frase MUITO RARA!", peso: 1 },
     ];
 
-    function sortear(){
-        const foto = document.getElementById("foto");
+    function sortearItem(){
+        const pesoTotal = itens.reduce((soma, item) => soma + (item.peso || 1), 0);
+        let aleatorio = Math.random() * pesoTotal;
+
+        for (const item of itens) {
+            aleatorio -= (item.peso || 1);
+            if (aleatorio < 0) {
+                return item;
+            }
+        }
+    }
+
+    function renderizar(item){
+        const wrapper = document.getElementById("foto-wrapper");
         const frase = document.getElementById("frase");
 
-        foto.classList.add("fade-out");
+        if (item.link) {
+            wrapper.innerHTML = '<a class="imagem-link" href="' + item.link + '" target="_blank"><img id="foto" src="' + item.imagem + '"></a>';
+        } else {
+            wrapper.innerHTML = '<img id="foto" src="' + item.imagem + '">';
+        }
+
+        frase.textContent = '"' + item.frase + '"';
+        frase.style.color = item.cor ? item.cor : "#555";
+    }
+
+    function sortear(){
+        const wrapper = document.getElementById("foto-wrapper");
+        const frase = document.getElementById("frase");
+
+        wrapper.classList.add("fade-out");
         frase.classList.add("fade-out");
 
         setTimeout(() => {
-            const escolha = itens[Math.floor(Math.random() * itens.length)];
-            foto.src = escolha.imagem;
-            frase.textContent = '"' + escolha.frase + '"';
+            const escolha = sortearItem();
+            renderizar(escolha);
 
-            foto.classList.remove("fade-out");
+            wrapper.classList.remove("fade-out");
             frase.classList.remove("fade-out");
         }, 300);
     }
