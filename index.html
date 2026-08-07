@@ -50,6 +50,20 @@
             background:#555;
             color:#fff;
         }
+        .botao-vermelho{
+            margin-top:25px;
+            padding:14px 30px;
+            font-family:Georgia, serif;
+            font-size:16px;
+            background:#c0392b;
+            border:none;
+            color:#fff;
+            border-radius:6px;
+            cursor:pointer;
+        }
+        .botao-vermelho:hover{
+            background:#922b21;
+        }
         .rodape{
             position: fixed;
             bottom: 20px;
@@ -83,7 +97,9 @@
     <span id="foto-wrapper"><img id="foto" src="lain.jpeg"></span>
     <p id="frase">"A beleza também existe no silêncio."</p>
     <br>
-    <button onclick="sortear()">aleatório</button>
+    <span id="botao-area">
+        <button id="botao-aleatorio" onclick="sortear()">aleatório</button>
+    </span>
 </div>
 <div class="rodape">
     <p>feito por sohta</p>
@@ -100,21 +116,57 @@
     //   peso -> "quantos bilhetes" o item tem na rifa do sorteio (padrão é 1).
     //           Aqui embaixo os itens normais usam peso 10, então pra tornar
     //           algo RARO, dá um peso bem menor, tipo 1.
+    //
+    // ITEM ESPECIAL "botão vermelho":
+    //   Ao invés dos campos normais, usa só:  { especial: "botao", peso: 1 }
+    //   Quando ele é sorteado, some a imagem/frase/botão aleatório, e aparece
+    //   só um botão vermelho. Só volta ao normal quando clica nele.
+    //
+    //   unico -> se true, depois que a pessoa "achar" esse item uma vez, ele
+    //            nunca mais aparece pra ela de novo (fica salvo no navegador
+    //            dela, o localStorage). Se ela abrir o site em outro
+    //            navegador/celular, ou limpar os dados do navegador, reseta.
+    //   id    -> opcional, um nome único pra identificar o item no
+    //            localStorage. Se não colocar, o código usa o nome da imagem
+    //            (ou "especial") como identificador — mas é mais seguro
+    //            colocar um id próprio em itens marcados como "unico".
     const itens = [
         { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio.", peso: 10 },
         { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão.", peso: 10 },
         { imagem: "Uh.jpeg", frase: "bem rebelde, não é?.", peso: 10 },
-        { imagem: "gambling.gif", frase: "LET'S GO GAMBLING!", cor: "#d4a017", peso: 10 },
+        { imagem: "gambling.gif", frase: "LET'S GO GAMBLING!", peso: 10 },
         { imagem: "ouvino.jpeg", frase: "as vezes, fingir que não está ouvindo algo, pode te ajudar, tente.", peso: 10 },
         { imagem: "limbus-company-project-moon.gif", frase: "vroom vroom", peso: 10 },
-        { imagem: "tenor.gif", frase: "musgo, frase MUITO RARA!", peso: 1 },
+        { imagem: "tenor.gif", frase: "musgo", peso: 10 },
+        { especial: "botao", peso: 1, unico: true, id: "botao-vermelho" },
     ];
 
+    // identifica um item de forma única (usa id, ou nome da imagem, ou "especial")
+    function itemId(item){
+        return "achado_" + (item.id || item.imagem || item.especial || JSON.stringify(item));
+    }
+
+    function jaFoiAchado(item){
+        return localStorage.getItem(itemId(item)) === "1";
+    }
+
+    function marcarComoAchado(item){
+        localStorage.setItem(itemId(item), "1");
+    }
+
     function sortearItem(){
-        const pesoTotal = itens.reduce((soma, item) => soma + (item.peso || 1), 0);
+        // remove da lista os itens "únicos" que a pessoa já achou antes
+        let disponiveis = itens.filter(item => !(item.unico && jaFoiAchado(item)));
+
+        // se por acaso tudo já foi achado (edge case raro), usa a lista inteira
+        if (disponiveis.length === 0) {
+            disponiveis = itens;
+        }
+
+        const pesoTotal = disponiveis.reduce((soma, item) => soma + (item.peso || 1), 0);
         let aleatorio = Math.random() * pesoTotal;
 
-        for (const item of itens) {
+        for (const item of disponiveis) {
             aleatorio -= (item.peso || 1);
             if (aleatorio < 0) {
                 return item;
@@ -125,6 +177,20 @@
     function renderizar(item){
         const wrapper = document.getElementById("foto-wrapper");
         const frase = document.getElementById("frase");
+        const botaoArea = document.getElementById("botao-area");
+
+        // se o item é "único", marca como achado assim que aparece
+        if (item.unico) {
+            marcarComoAchado(item);
+        }
+
+        // item especial: some tudo, mostra só o botão vermelho
+        if (item.especial === "botao") {
+            wrapper.innerHTML = "";
+            frase.textContent = "";
+            botaoArea.innerHTML = '<button class="botao-vermelho" onclick="voltar()">?</button>';
+            return;
+        }
 
         if (item.link) {
             wrapper.innerHTML = '<a class="imagem-link" href="' + item.link + '" target="_blank"><img id="foto" src="' + item.imagem + '"></a>';
@@ -134,6 +200,13 @@
 
         frase.textContent = '"' + item.frase + '"';
         frase.style.color = item.cor ? item.cor : "#555";
+    }
+
+    // chamado ao clicar no botão vermelho: volta ao normal
+    function voltar(){
+        const botaoArea = document.getElementById("botao-area");
+        botaoArea.innerHTML = '<button id="botao-aleatorio" onclick="sortear()">aleatório</button>';
+        sortear();
     }
 
     function sortear(){
