@@ -57,10 +57,11 @@
     { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio." },
     { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão." },
     { imagem: "Uh.jpeg", frase: "bem rebelde, não é?." },
+{ imagem: "gambling.gif", frase: "LET'S GO GAMBLING!" },
 ];
 
     function sortear(){
-        const escolha = itens[Math.floor(Math.random() * itens.length)];
+        const escolha = itens[Math.floor(Math''.random() * itens.length)];
         document.getElementById("foto").src = escolha.imagem;
         document.getElementById("frase").textContent = '"' + escolha.frase + '"';
     }
