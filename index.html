@@ -3,43 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <title>athos</title>
-
     <style>
         body{
             margin:0;
             background:#fff;
             height:100vh;
-
             display:flex;
             justify-content:center;
             align-items:center;
-
             font-family:Georgia, serif;
         }
-
         .container{
             text-align:center;
         }
-
         img{
             width:500px;
             max-width:90vw;
         }
-
         p{
             margin-top:20px;
             font-size:18px;
             color:#555;
         }
+        button{
+            margin-top:25px;
+            padding:10px 20px;
+            font-family:Georgia, serif;
+            font-size:14px;
+            background:#fff;
+            border:1px solid #555;
+            color:#555;
+            border-radius:6px;
+            cursor:pointer;
+        }
+        button:hover{
+            background:#555;
+            color:#fff;
+        }
     </style>
 </head>
-
 <body>
-
 <div class="container">
-<img src="lain.jpeg">
-    <p>"A beleza também existe no silêncio."</p>
+    <img id="foto" src="lain.jpeg">
+    <p id="frase">"A beleza também existe no silêncio."</p>
+    <br>
+    <button onclick="sortear()">aleatório</button>
 </div>
 
+<script>
+    // Adiciona pares de imagem + frase aqui.
+    // A imagem tem que estar no mesmo lugar do index.html, com o nome exato.
+    const itens = [
+    { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio." },
+    { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão." },
+    { imagem: "Uh.jpeg", frase: "bem rebelde, não é?." },
+];
+
+    function sortear(){
+        const escolha = itens[Math.floor(Math.random() * itens.length)];
+        document.getElementById("foto").src = escolha.imagem;
+        document.getElementById("frase").textContent = '"' + escolha.frase + '"';
+    }
+</script>
 </body>
 </html>
