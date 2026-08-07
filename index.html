@@ -47,6 +47,19 @@
             background:#555;
             color:#fff;
         }
+        .rodape{
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-family: Georgia, serif;
+        }
+        .rodape p{
+            margin: 0;
+            font-size: 12px;
+            color: #bbb;
+        }
     </style>
 </head>
 <body>
@@ -56,6 +69,12 @@
     <br>
     <button onclick="sortear()">aleatório</button>
 </div>
+
+<div class="rodape">
+    <p>feito por sohta</p>
+    <p id="atualizado"></p>
+</div>
+
 <script>
     // Adiciona pares de imagem + frase aqui.
     // A imagem tem que estar no mesmo lugar do index.html, com o nome exato.
@@ -82,6 +101,11 @@
             frase.classList.remove("fade-out");
         }, 300);
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const data = new Date(document.lastModified);
+        document.getElementById("atualizado").textContent = "Última vez atualizado: " + data.toLocaleString("pt-BR");
+    });
 </script>
 </body>
 </html>
