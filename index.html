@@ -90,6 +90,85 @@
         .sugerir:hover{
             color: #888;
         }
+        .conquistas-link{
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-family: Georgia, serif;
+            font-size: 11px;
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .conquistas-link:hover{
+            color: #888;
+        }
+        .overlay{
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .overlay.aberto{
+            display: flex;
+        }
+        .painel{
+            background: #fff;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 400px;
+            width: 85vw;
+            max-height: 70vh;
+            overflow-y: auto;
+            font-family: Georgia, serif;
+            text-align: left;
+            position: relative;
+        }
+        .painel h2{
+            font-size: 18px;
+            color: #333;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+        .painel .fechar{
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            font-family: Georgia, serif;
+        }
+        .painel .fechar:hover{
+            color: #555;
+        }
+        .item-conquista{
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .item-conquista:last-child{
+            border-bottom: none;
+        }
+        .item-conquista .titulo{
+            color: #333;
+        }
+        .item-conquista .titulo.bloqueado{
+            color: #bbb;
+        }
+        .item-conquista .data{
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 3px;
+        }
     </style>
 </head>
 <body>
@@ -106,6 +185,15 @@
     <p id="atualizado"></p>
 </div>
 <a class="sugerir" href="https://forms.gle/NVmTD1NhMUaXYfaf7" target="_blank">sugerir</a>
+<button class="conquistas-link" onclick="abrirConquistas()">conquistas</button>
+
+<div class="overlay" id="overlay-conquistas" onclick="fecharConquistasFora(event)">
+    <div class="painel">
+        <button class="fechar" onclick="fecharConquistas()">✕</button>
+        <h2>conquistas</h2>
+        <div id="lista-conquistas"></div>
+    </div>
+</div>
 <script>
     // Adiciona pares de imagem + frase aqui.
     // A imagem tem que estar no mesmo lugar do index.html, com o nome exato.
@@ -130,15 +218,18 @@
     //            localStorage. Se não colocar, o código usa o nome da imagem
     //            (ou "especial") como identificador — mas é mais seguro
     //            colocar um id próprio em itens marcados como "unico".
+    //   conquista -> nome que aparece na aba de "conquistas" quando a pessoa
+    //                acha esse item. Só faz sentido em itens com unico:true —
+    //                sem isso, o item não aparece na lista de conquistas.
     const itens = [
         { imagem: "lain.jpeg", frase: "A beleza também existe no silêncio.", peso: 10 },
         { imagem: "shiori.jpeg", frase: "eu não entendo sua expressão.", peso: 10 },
         { imagem: "Uh.jpeg", frase: "bem rebelde, não é?.", peso: 10 },
-        { imagem: "gambling.gif", frase: "LET'S GO GAMBLING!", peso: 10 },
+        { imagem: "gambling.gif", frase: "LET'S GO GAMBLING!", cor: "#d4a017", peso: 10 },
         { imagem: "ouvino.jpeg", frase: "as vezes, fingir que não está ouvindo algo, pode te ajudar, tente.", peso: 10 },
         { imagem: "limbus-company-project-moon.gif", frase: "vroom vroom", peso: 10 },
         { imagem: "tenor.gif", frase: "musgo", peso: 10 },
-        { especial: "botao", peso: 1, unico: true, id: "botao-vermelho" },
+        { especial: "botao", peso: 1, unico: true, id: "botao-vermelho", conquista: "o botão vermelho" },
     ];
 
     // identifica um item de forma única (usa id, ou nome da imagem, ou "especial")
@@ -152,6 +243,9 @@
 
     function marcarComoAchado(item){
         localStorage.setItem(itemId(item), "1");
+        if (!localStorage.getItem(itemId(item) + "_data")) {
+            localStorage.setItem(itemId(item) + "_data", new Date().toLocaleString("pt-BR"));
+        }
     }
 
     function sortearItem(){
@@ -229,6 +323,55 @@
         const data = new Date(document.lastModified);
         document.getElementById("atualizado").textContent = "Última vez atualizado: " + data.toLocaleString("pt-BR");
     });
+
+    function preencherConquistas(){
+        const lista = document.getElementById("lista-conquistas");
+        lista.innerHTML = "";
+
+        // só entram na lista os itens marcados como "unico" que tenham "conquista"
+        const conquistaveis = itens.filter(item => item.unico && item.conquista);
+
+        if (conquistaveis.length === 0) {
+            lista.innerHTML = '<p style="text-align:center; color:#999; font-size:13px;">nenhuma conquista cadastrada ainda.</p>';
+            return;
+        }
+
+        conquistaveis.forEach(item => {
+            const achado = jaFoiAchado(item);
+            const div = document.createElement("div");
+            div.className = "item-conquista";
+
+            const titulo = document.createElement("div");
+            titulo.className = "titulo" + (achado ? "" : " bloqueado");
+            titulo.textContent = achado ? item.conquista : "???";
+            div.appendChild(titulo);
+
+            if (achado) {
+                const dataEl = document.createElement("div");
+                dataEl.className = "data";
+                dataEl.textContent = "desbloqueado em " + localStorage.getItem(itemId(item) + "_data");
+                div.appendChild(dataEl);
+            }
+
+            lista.appendChild(div);
+        });
+    }
+
+    function abrirConquistas(){
+        preencherConquistas();
+        document.getElementById("overlay-conquistas").classList.add("aberto");
+    }
+
+    function fecharConquistas(){
+        document.getElementById("overlay-conquistas").classList.remove("aberto");
+    }
+
+    // fecha o painel se a pessoa clicar fora dele (no fundo escuro)
+    function fecharConquistasFora(evento){
+        if (evento.target.id === "overlay-conquistas") {
+            fecharConquistas();
+        }
+    }
 </script>
 </body>
 </html>
